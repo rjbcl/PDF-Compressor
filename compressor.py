@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from io import BytesIO
 from pathlib import Path
 
 import fitz
@@ -43,6 +44,65 @@ def compress_file(input_path: Path, output_path: Path, settings: CompressionSett
     if suffix in {".jpg", ".jpeg", ".png", ".webp"}:
         return compress_image(input_path, output_path, settings)
     raise CompressionError("Unsupported file type.")
+
+
+def compress_bytes(input_data: bytes, suffix: str, settings: CompressionSettings) -> tuple[bytes, str, int, int, str]:
+    suffix = suffix.lower()
+    if suffix == ".pdf":
+        output_data = compress_pdf_bytes(input_data, settings)
+        return output_data, "application/pdf", len(input_data), len(output_data), ".pdf"
+    if suffix in {".jpg", ".jpeg", ".png", ".webp"}:
+        output_data, mimetype, output_suffix = compress_image_bytes(input_data, suffix, settings)
+        return output_data, mimetype, len(input_data), len(output_data), output_suffix
+    raise CompressionError("Unsupported file type.")
+
+
+def compress_image_bytes(input_data: bytes, suffix: str, settings: CompressionSettings) -> tuple[bytes, str, str]:
+    try:
+        with Image.open(BytesIO(input_data)) as image:
+            image = ImageOps.exif_transpose(image)
+            resized = _resize_image(image, settings.max_dimension)
+            output = BytesIO()
+
+            if suffix == ".png":
+                if resized.mode not in ("RGB", "P"):
+                    resized = resized.convert("RGBA" if "A" in resized.mode else "RGB")
+                converted = resized.convert("P", palette=Image.Palette.ADAPTIVE, colors=settings.png_colors)
+                converted.save(output, format="PNG", optimize=True)
+                return output.getvalue(), "image/png", ".png"
+
+            if resized.mode not in ("RGB", "L"):
+                resized = resized.convert("RGB")
+            resized.save(
+                output,
+                format="JPEG",
+                quality=settings.image_quality,
+                optimize=True,
+                progressive=True,
+            )
+            return output.getvalue(), "image/jpeg", ".jpg"
+    except OSError as exc:
+        raise CompressionError("Unable to compress this image.") from exc
+
+
+def compress_pdf_bytes(input_data: bytes, settings: CompressionSettings) -> bytes:
+    source = fitz.open(stream=input_data, filetype="pdf")
+    target = fitz.open()
+
+    try:
+        for page in source:
+            pixmap = page.get_pixmap(dpi=settings.pdf_dpi, alpha=False)
+            image_bytes = pixmap.tobytes("jpg", jpg_quality=settings.image_quality)
+            rect = fitz.Rect(0, 0, page.rect.width, page.rect.height)
+            new_page = target.new_page(width=page.rect.width, height=page.rect.height)
+            new_page.insert_image(rect, stream=image_bytes)
+
+        return target.tobytes(garbage=4, deflate=True, clean=True)
+    except RuntimeError as exc:
+        raise CompressionError("Unable to compress this PDF.") from exc
+    finally:
+        source.close()
+        target.close()
 
 
 def compress_image(input_path: Path, output_path: Path, settings: CompressionSettings) -> CompressionResult:

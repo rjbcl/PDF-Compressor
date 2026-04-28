@@ -1,0 +1,5 @@
+# Python cache
+__pycache__/
+.tmp/
+__pycache__/compressor.cpython-314.pyc
+*.pyc

@@ -1,127 +1,712 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>RJBCL Document Compressor</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-  </head>
-  <body>
-    <header class="site-header">
-      <a class="brand" href="/">
-        <img src="{{ url_for('static', filename='rbs-logo.png') }}" alt="Rastriya Jeewan Beema Company Limited" class="brand-logo">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RJBCL PDF Tools</title>
+  <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Space+Grotesk:wght@400;500;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+
+<body data-active-tool="{{ active_tool }}">
+  <header class="site-header">
+    <a class="brand" href="/" aria-label="Rastriya Jeewan Beema Company Limited">
+      <img src="{{ url_for('static', filename='rbs-logo.png') }}" alt="Rastriya Jeewan Beema Company Limited"
+        class="brand-logo">
+    </a>
+    <nav class="primary-nav" aria-label="PDF tools">
+      <a href="/" data-home-link>Home</a>
+      <a href="/merge" data-tool-link="merge">Merge PDF</a>
+      <a href="/split" data-tool-link="split">Split PDF</a>
+      <a href="/compress" data-tool-link="compress">Compress PDF</a>
+      <a href="/convert" data-tool-link="convert">Convert PDF</a>
+    </nav>
+    <div class="header-actions">
+      <a class="contact-link" href="mailto:info@rbs.gov.np">info@rbs.gov.np</a>
+      <a class="contact-link" href="tel:+977-01-5362520">+977-01-5362520</a>
+      <a class="apps-button" href="#tools" aria-label="View all PDF tools">
+        <span></span><span></span><span></span>
+        <span></span><span></span><span></span>
+        <span></span><span></span><span></span>
       </a>
-      <nav class="primary-nav" aria-label="PDF tools">
-        <a href="#merge">Merge PDF</a>
-        <a href="#split">Split PDF</a>
-        <a class="active" href="#compress">Compress PDF</a>
-        <a href="#convert">Convert PDF</a>
-        <a href="#tools">All PDF Tools</a>
-      </nav>
-      <div class="header-actions">
-        <a class="contact-link" href="mailto:info@rbs.gov.np">info@rbs.gov.np</a>
-        <a class="contact-link" href="tel:+977-01-5362520">+977-01-5362520</a>
-        <a class="apps-button" href="#tools" aria-label="View all PDF tools">
-          <span></span><span></span><span></span>
-          <span></span><span></span><span></span>
-          <span></span><span></span><span></span>
-        </a>
-      </div>
-    </header>
+    </div>
+  </header>
 
-    <main>
-      <section class="hero">
-        <p class="eyebrow">Rastriya Jeewan Beema Company Limited</p>
-        <h1>Compress PDF files</h1>
-        <p class="lede">
-          Reduce document size while keeping files ready for upload, sharing, and official digital services.
-        </p>
-      </section>
+  <main>
+    <section class="hero">
+      <p class="eyebrow">Rastriya Jeewan Beema Company Limited</p>
+      <h1 data-hero-title>All PDF tools in one place</h1>
+      <p class="lede" data-hero-copy>
+        Select a tool to open its upload form. The page stays clean until you choose what you need.
+      </p>
+    </section>
 
-      <section class="tool-shell" id="compress">
-        {% if error %}
-          <div class="alert">{{ error }}</div>
-        {% endif %}
+    {% if error %}
+    <section class="page-alert-wrap">
+      <div class="alert">{{ error }}</div>
+    </section>
+    {% endif %}
 
-        <form action="/compress" method="post" enctype="multipart/form-data" class="uploader">
-          <label class="dropzone">
-            <span class="dropzone-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" role="img" focusable="false">
-                <path d="M6 2h8l4 4v16H6V2zm7 1.8V7h3.2L13 3.8zM8.8 13.4h1.1c.8 0 1.4-.2 1.8-.5.4-.3.6-.8.6-1.4s-.2-1-.6-1.3c-.4-.3-1-.5-1.8-.5H7.6v6.6h1.2v-2.9zm0-1v-1.7h1c.8 0 1.2.3 1.2.8 0 .6-.4.9-1.2.9h-1zm5.2 3.9c1.1 0 1.9-.3 2.5-.9.6-.6.9-1.4.9-2.5 0-1-.3-1.8-.9-2.4-.6-.6-1.4-.9-2.5-.9h-1.9v6.6H14zm-.6-1v-4.6h.6c.7 0 1.2.2 1.6.6.4.4.6.9.6 1.6s-.2 1.3-.6 1.7c-.4.4-.9.6-1.6.6h-.6zm5.6-1.6h2.2v-1.1H19v-1.8h2.5V9.7h-3.7v6.6H19v-2.6z"/>
-              </svg>
-            </span>
-            <span class="dropzone-title">Select PDF file</span>
-            <span class="dropzone-copy">PDF, JPG, PNG, or WEBP up to 100 MB</span>
-            <input type="file" name="file" accept=".pdf,.jpg,.jpeg,.png,.webp" required>
-          </label>
+    <section class="tool-launcher" id="tools" aria-label="Available PDF tools" data-tool-launcher {% if active_tool %}hidden{% endif %}>
+      <a class="tool-card" href="/merge" data-tool-card="merge" aria-controls="merge-panel">
+        <span class="feature-icon merge-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" focusable="false">
+            <path
+              d="M7 3h8l4 4v8h-2V8h-4V4H7v16h5v2H5V3h2zm8 1.4V6h1.6L15 4.4zM13 15h4v-3l5 4-5 4v-3h-4v-2zM8 9h7v2H8V9zm0 4h5v2H8v-2z" />
+          </svg>
+        </span>
+        <strong>Merge PDF</strong>
+        <span>Combine multiple PDFs into one file.</span>
+      </a>
 
-          <div class="controls">
-            <label>
-              <span>Compression profile</span>
-              <select name="profile">
-                <option value="small">Smallest file</option>
-                <option value="balanced" selected>Balanced</option>
-                <option value="quality">Better quality</option>
-              </select>
-            </label>
+      <a class="tool-card" href="/split" data-tool-card="split" aria-controls="split-panel">
+        <span class="feature-icon split-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" focusable="false">
+            <path
+              d="M6 3h8l4 4v5h-2V8h-4V5H8v14h5v2H6V3zm8 1.5V6h1.5L14 4.5zM14 14h3.2l1.2-1.2 1.4 1.4-1.3 1.3 1.3 1.3-1.4 1.4-1.2-1.2H14v-3zm0 4h2v2h-2v-2zM8 10h6v2H8v-2z" />
+          </svg>
+        </span>
+        <strong>Split PDF</strong>
+        <span>Extract any pages or ranges.</span>
+      </a>
 
-            <button type="submit">Compress file</button>
-          </div>
-        </form>
+      <a class="tool-card" href="/compress" data-tool-card="compress" aria-controls="compress-panel">
+        <span class="feature-icon compress-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" focusable="false">
+            <path
+              d="M6 3h8l4 4v14H6V3zm8 1.5V7h2.5L14 4.5zM9 10h6v2H9v-2zm1.5 3h3L12 15.2 10.5 13zm3 5h-3l1.5-2.2L13.5 18z" />
+          </svg>
+        </span>
+        <strong>Compress PDF</strong>
+        <span>Reduce PDF and image file size.</span>
+      </a>
 
-        <div class="notes">
-          <p>Balanced is recommended for routine documents. Use better quality for scanned certificates and forms.</p>
-        </div>
-      </section>
+      <a class="tool-card" href="/convert" data-tool-card="convert" aria-controls="convert-panel">
+        <span class="feature-icon convert-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" focusable="false">
+            <path
+              d="M6 3h8l4 4v5h-2V8h-4V5H8v14h5v2H6V3zm8 1.5V6h1.5L14 4.5zM14 15h3.6l-1.3-1.3 1.4-1.4L21.4 16l-3.7 3.7-1.4-1.4 1.3-1.3H14v-2zM8 10h6v2H8v-2zm0 4h4v2H8v-2z" />
+          </svg>
+        </span>
+        <strong>Convert PDF</strong>
+        <span>Convert images to PDF or PDF to JPG.</span>
+      </a>
+    </section>
 
-      <section class="feature-grid" id="tools" aria-label="Available PDF tools">
-        <article class="feature-card" id="merge">
+    <section class="tool-workspace" aria-live="polite">
+      <article class="tool-panel" id="merge-panel" data-tool-panel="merge" {% if active_tool != 'merge' %}hidden{% endif %}>
+        <div class="panel-copy">
           <span class="feature-icon merge-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" focusable="false">
-              <path d="M7 3h8l4 4v8h-2V8h-4V4H7v16h5v2H5V3h2zm8 1.4V6h1.6L15 4.4zM13 15h4v-3l5 4-5 4v-3h-4v-2zM8 9h7v2H8V9zm0 4h5v2H8v-2z"/>
+              <path
+                d="M7 3h8l4 4v8h-2V8h-4V4H7v16h5v2H5V3h2zm8 1.4V6h1.6L15 4.4zM13 15h4v-3l5 4-5 4v-3h-4v-2zM8 9h7v2H8V9zm0 4h5v2H8v-2z" />
             </svg>
           </span>
-          <h2>Merge PDF</h2>
-          <p>Combine multiple documents into one orderly PDF for submission packages.</p>
-          <a href="#compress">Use compressor for now</a>
-        </article>
+          <p class="eyebrow">Merge PDF</p>
+          <h2>Combine PDFs in the order you select them</h2>
+          <p>Use this for submission bundles, scanned documents, or related forms that need to travel as one file.</p>
+        </div>
+        <form action="/merge" method="post" enctype="multipart/form-data" class="tool-form" data-tool-form="merge">
+          <div class="inline-message" data-form-message hidden></div>
+          <label class="field upload-zone" data-drop-zone>
+            <span>Select PDF files</span>
+            <input type="file" name="files" accept=".pdf" multiple required data-merge-input>
+            <small>Click to browse or drag PDF files here.</small>
+          </label>
+          <div class="file-queue" data-merge-queue hidden>
+            <div class="file-queue-header">
+              <strong>Selected PDFs</strong>
+              <span class="queue-actions">
+                <button type="button" data-add-merge-files>Add more</button>
+                <button type="button" data-clear-merge-files>Clear</button>
+              </span>
+            </div>
+            <ul data-merge-file-list></ul>
+            <small>Files are merged from top to bottom.</small>
+          </div>
+          <button type="submit">Merge files</button>
+        </form>
+      </article>
 
-        <article class="feature-card" id="split">
+      <article class="tool-panel" id="split-panel" data-tool-panel="split" {% if active_tool != 'split' %}hidden{% endif %}>
+        <div class="panel-copy">
           <span class="feature-icon split-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" focusable="false">
-              <path d="M6 3h8l4 4v5h-2V8h-4V5H8v14h5v2H6V3zm8 1.5V6h1.5L14 4.5zM14 14h3.2l1.2-1.2 1.4 1.4-1.3 1.3 1.3 1.3-1.4 1.4-1.2-1.2H14v-3zm0 4h2v2h-2v-2zM8 10h6v2H8v-2z"/>
+              <path
+                d="M6 3h8l4 4v5h-2V8h-4V5H8v14h5v2H6V3zm8 1.5V6h1.5L14 4.5zM14 14h3.2l1.2-1.2 1.4 1.4-1.3 1.3 1.3 1.3-1.4 1.4-1.2-1.2H14v-3zm0 4h2v2h-2v-2zM8 10h6v2H8v-2z" />
             </svg>
           </span>
-          <h2>Split PDF</h2>
-          <p>Separate large forms or scanned bundles into smaller document sections.</p>
-          <a href="#compress">Use compressor for now</a>
-        </article>
+          <p class="eyebrow">Advanced Split PDF</p>
+          <h2>Split any pages, then choose the output</h2>
+          <p>Type individual pages, ranges, or both. The selected pages can download as separate PDFs or merge into one PDF.</p>
+        </div>
+        <form action="/split" method="post" enctype="multipart/form-data" class="tool-form" data-tool-form="split">
+          <div class="inline-message" data-form-message hidden></div>
+          <label class="field upload-zone" data-drop-zone>
+            <span>Select PDF file</span>
+            <input type="file" name="file" accept=".pdf" required data-split-input>
+            <small>Click to browse or drag one PDF here.</small>
+          </label>
+          <div class="file-preview" data-split-preview hidden></div>
+          <label class="field">
+            <span>Pages to split or extract</span>
+            <input type="text" name="ranges" placeholder="Example: 1, 3, 5-8, 12" required>
+          </label>
+          <fieldset class="choice-group">
+            <legend>Output option</legend>
+            <label>
+              <input type="radio" name="split_output" value="zip" checked>
+              <span>Separate PDFs in one ZIP</span>
+            </label>
+            <label>
+              <input type="radio" name="split_output" value="merged">
+              <span>Merge selected pages into one PDF</span>
+            </label>
+          </fieldset>
+          <button type="submit">Split PDF</button>
+        </form>
+      </article>
 
-        <article class="feature-card feature-card-active">
+      <article class="tool-panel" id="compress-panel" data-tool-panel="compress" {% if active_tool != 'compress' %}hidden{% endif %}>
+        <div class="panel-copy">
           <span class="feature-icon compress-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" focusable="false">
-              <path d="M6 3h8l4 4v14H6V3zm8 1.5V7h2.5L14 4.5zM9 10h6v2H9v-2zm1.5 3h3L12 15.2 10.5 13zm3 5h-3l1.5-2.2L13.5 18z"/>
+              <path
+                d="M6 3h8l4 4v14H6V3zm8 1.5V7h2.5L14 4.5zM9 10h6v2H9v-2zm1.5 3h3L12 15.2 10.5 13zm3 5h-3l1.5-2.2L13.5 18z" />
             </svg>
           </span>
-          <h2>Compress PDF</h2>
-          <p>Reduce file size using the active upload tool above.</p>
-          <a href="#compress">Open compressor</a>
-        </article>
+          <p class="eyebrow">Compress PDF</p>
+          <h2>Make documents easier to upload and share</h2>
+          <p>Balanced compression is best for routine office documents. Use smallest file when upload limits are strict.</p>
+        </div>
+        <form action="/compress" method="post" enctype="multipart/form-data" class="tool-form" data-tool-form="compress">
+          <div class="inline-message" data-form-message hidden></div>
+          <label class="field upload-zone" data-drop-zone>
+            <span>Select file</span>
+            <input type="file" name="file" accept=".pdf,.jpg,.jpeg,.png,.webp" required>
+            <small>Click to browse or drag a PDF/image here.</small>
+          </label>
+          <label class="field">
+            <span>Compression profile</span>
+            <select name="profile">
+              <option value="small">Smallest file</option>
+              <option value="balanced" selected>Balanced</option>
+              <option value="quality">Better quality</option>
+            </select>
+          </label>
+          <div class="result-summary" data-compress-result hidden></div>
+          <button type="submit">Compress file</button>
+        </form>
+      </article>
 
-        <article class="feature-card" id="convert">
+      <article class="tool-panel" id="convert-panel" data-tool-panel="convert" {% if active_tool != 'convert' %}hidden{% endif %}>
+        <div class="panel-copy">
           <span class="feature-icon convert-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" focusable="false">
-              <path d="M6 3h8l4 4v5h-2V8h-4V5H8v14h5v2H6V3zm8 1.5V6h1.5L14 4.5zM14 15h3.6l-1.3-1.3 1.4-1.4L21.4 16l-3.7 3.7-1.4-1.4 1.3-1.3H14v-2zM8 10h6v2H8v-2zm0 4h4v2H8v-2z"/>
+              <path
+                d="M6 3h8l4 4v5h-2V8h-4V5H8v14h5v2H6V3zm8 1.5V6h1.5L14 4.5zM14 15h3.6l-1.3-1.3 1.4-1.4L21.4 16l-3.7 3.7-1.4-1.4 1.3-1.3H14v-2zM8 10h6v2H8v-2zm0 4h4v2H8v-2z" />
             </svg>
           </span>
-          <h2>Convert PDF</h2>
-          <p>Prepare future conversion flows for PDF, image, and office document formats.</p>
-          <a href="#compress">Use compressor for now</a>
-        </article>
-      </section>
-    </main>
-  </body>
+          <p class="eyebrow">Convert PDF</p>
+          <h2>Switch between image and PDF formats</h2>
+          <p>Create a PDF from an image, or export every PDF page as JPG files inside one ZIP download.</p>
+        </div>
+        <form action="/convert" method="post" enctype="multipart/form-data" class="tool-form" data-tool-form="convert">
+          <div class="inline-message" data-form-message hidden></div>
+          <label class="field upload-zone" data-drop-zone>
+            <span>Select file</span>
+            <input type="file" name="file" accept=".pdf,.jpg,.jpeg,.png,.webp" required>
+            <small>Click to browse or drag a supported file here.</small>
+          </label>
+          <label class="field">
+            <span>Convert to</span>
+            <select name="target">
+              <option value="pdf">PDF from image</option>
+              <option value="jpg">JPG images from PDF</option>
+            </select>
+          </label>
+          <button type="submit">Convert file</button>
+        </form>
+      </article>
+    </section>
+
+    <section class="other-tools" data-other-tools {% if not active_tool %}hidden{% endif %}>
+      <div class="other-tools-heading">
+        <p class="eyebrow">Other tools</p>
+        <h2>Continue with another PDF task</h2>
+      </div>
+      <div class="other-tools-grid" data-other-tools-grid></div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>&copy; 2026 <strong>Rastriya Jeewan Beema Company Limited</strong>. All Rights Reserved.</p>
+  </footer>
+
+  <script>
+    const toolCards = document.querySelectorAll("[data-tool-card]");
+    const toolLinks = document.querySelectorAll("[data-tool-link]");
+    const toolPanels = document.querySelectorAll("[data-tool-panel]");
+    const homeLink = document.querySelector("[data-home-link]");
+    const heroTitle = document.querySelector("[data-hero-title]");
+    const heroCopy = document.querySelector("[data-hero-copy]");
+    const toolLauncher = document.querySelector("[data-tool-launcher]");
+    const otherTools = document.querySelector("[data-other-tools]");
+    const otherToolsGrid = document.querySelector("[data-other-tools-grid]");
+    const availableTools = ["merge", "split", "compress", "convert"];
+    const toolContent = {
+      merge: {
+        title: "Merge PDF files",
+        copy: "Combine PDFs in the order you want with a simple PDF merger."
+      },
+      split: {
+        title: "Split PDF file",
+        copy: "Separate one PDF by page ranges or extract selected pages."
+      },
+      compress: {
+        title: "Compress PDF file",
+        copy: "Reduce file size while keeping documents ready to upload."
+      },
+      convert: {
+        title: "Convert PDF files",
+        copy: "Convert images to PDF or export PDF pages as JPG files."
+      }
+    };
+    const mergeInput = document.querySelector("[data-merge-input]");
+    const mergeQueue = document.querySelector("[data-merge-queue]");
+    const mergeFileList = document.querySelector("[data-merge-file-list]");
+    const addMergeFiles = document.querySelector("[data-add-merge-files]");
+    const clearMergeFiles = document.querySelector("[data-clear-merge-files]");
+    const splitInput = document.querySelector("[data-split-input]");
+    const splitPreview = document.querySelector("[data-split-preview]");
+    let mergeFiles = [];
+
+    function renderOtherTools(activeTool) {
+      otherToolsGrid.innerHTML = "";
+
+      availableTools
+        .filter((tool) => tool !== activeTool)
+        .forEach((tool) => {
+          const sourceCard = document.querySelector(`[data-tool-card="${tool}"]`);
+          const card = sourceCard.cloneNode(true);
+          card.classList.remove("active");
+          card.setAttribute("aria-pressed", "false");
+          otherToolsGrid.append(card);
+        });
+    }
+
+    function showHome(shouldScroll = true) {
+      toolCards.forEach((card) => {
+        card.classList.remove("active", "is-hidden");
+        card.setAttribute("aria-pressed", "false");
+      });
+
+      toolLinks.forEach((link) => {
+        link.classList.remove("active");
+      });
+      homeLink.classList.add("active");
+
+      toolPanels.forEach((panel) => {
+        panel.hidden = true;
+      });
+
+      toolLauncher.hidden = false;
+      otherTools.hidden = true;
+      otherToolsGrid.innerHTML = "";
+      heroTitle.textContent = "All PDF tools in one place";
+      heroCopy.textContent = "Select a tool to open its upload form. The page stays clean until you choose what you need.";
+      if (shouldScroll) {
+        document.querySelector("main").scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }
+
+    function selectTool(tool, shouldScroll = true) {
+      if (!availableTools.includes(tool)) {
+        return;
+      }
+
+      toolLinks.forEach((link) => {
+        link.classList.toggle("active", link.dataset.toolLink === tool);
+      });
+      homeLink.classList.remove("active");
+
+      toolPanels.forEach((panel) => {
+        panel.hidden = panel.dataset.toolPanel !== tool;
+      });
+
+      toolLauncher.hidden = true;
+      otherTools.hidden = false;
+      renderOtherTools(tool);
+      heroTitle.textContent = toolContent[tool].title;
+      heroCopy.textContent = toolContent[tool].copy;
+      if (shouldScroll) {
+        document.querySelector(".tool-workspace").scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }
+
+    const initialTool = document.body.dataset.activeTool;
+    if (availableTools.includes(initialTool)) {
+      selectTool(initialTool, false);
+    } else {
+      showHome(false);
+    }
+
+    function syncMergeInput() {
+      const transfer = new DataTransfer();
+      mergeFiles.forEach((file) => transfer.items.add(file));
+      mergeInput.files = transfer.files;
+      mergeInput.required = mergeFiles.length === 0;
+    }
+
+    function setInputFiles(input, files) {
+      const transfer = new DataTransfer();
+      files.forEach((file) => transfer.items.add(file));
+      input.files = transfer.files;
+      input.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+
+    function formatBytes(bytes) {
+      if (!Number.isFinite(bytes) || bytes <= 0) {
+        return "0 KB";
+      }
+
+      const units = ["B", "KB", "MB", "GB"];
+      const exponent = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
+      const value = bytes / (1024 ** exponent);
+      return `${value.toFixed(value >= 10 || exponent === 0 ? 0 : 1)} ${units[exponent]}`;
+    }
+
+    function setFormMessage(form, message, type = "error") {
+      const messageBox = form.querySelector("[data-form-message]");
+      if (!messageBox) {
+        return;
+      }
+
+      messageBox.hidden = !message;
+      messageBox.textContent = message;
+      messageBox.classList.toggle("is-error", type === "error");
+      messageBox.classList.toggle("is-success", type === "success");
+    }
+
+    function clearPanelFeedback(form) {
+      setFormMessage(form, "");
+
+      const compressResult = form.querySelector("[data-compress-result]");
+      if (compressResult) {
+        compressResult.hidden = true;
+        compressResult.innerHTML = "";
+      }
+    }
+
+    function updateFormFileState(form) {
+      const hasFiles = Array.from(form.querySelectorAll("input[type='file']")).some((input) => input.files.length > 0);
+      form.classList.toggle("has-files", hasFiles);
+    }
+
+    function renderMergeFiles() {
+      mergeQueue.hidden = mergeFiles.length === 0;
+      mergeFileList.innerHTML = "";
+
+      mergeFiles.forEach((file, index) => {
+        const item = document.createElement("li");
+        const fileInfo = document.createElement("span");
+        const name = document.createElement("span");
+        const controls = document.createElement("span");
+        const moveUp = document.createElement("button");
+        const moveDown = document.createElement("button");
+        const remove = document.createElement("button");
+
+        fileInfo.className = "file-info";
+        name.textContent = file.name;
+        controls.className = "file-actions";
+
+        moveUp.type = "button";
+        moveUp.textContent = "Up";
+        moveUp.disabled = index === 0;
+        moveUp.addEventListener("click", () => {
+          [mergeFiles[index - 1], mergeFiles[index]] = [mergeFiles[index], mergeFiles[index - 1]];
+          syncMergeInput();
+          renderMergeFiles();
+        });
+
+        moveDown.type = "button";
+        moveDown.textContent = "Down";
+        moveDown.disabled = index === mergeFiles.length - 1;
+        moveDown.addEventListener("click", () => {
+          [mergeFiles[index], mergeFiles[index + 1]] = [mergeFiles[index + 1], mergeFiles[index]];
+          syncMergeInput();
+          renderMergeFiles();
+        });
+
+        remove.type = "button";
+        remove.textContent = "Remove";
+        remove.addEventListener("click", () => {
+          mergeFiles.splice(index, 1);
+          syncMergeInput();
+          renderMergeFiles();
+          updateFormFileState(mergeInput.form);
+        });
+
+        fileInfo.append(name);
+        controls.append(moveUp, moveDown, remove);
+        item.append(fileInfo, controls);
+        mergeFileList.append(item);
+      });
+    }
+
+    function clearMergeQueue() {
+      mergeFiles = [];
+      syncMergeInput();
+      renderMergeFiles();
+    }
+
+    function setProcessing(form, isProcessing) {
+      const submitButton = form.querySelector("button[type='submit']");
+
+      if (!submitButton) {
+        return;
+      }
+
+      if (isProcessing) {
+        submitButton.dataset.originalText = submitButton.textContent;
+        submitButton.textContent = "Processing...";
+        submitButton.disabled = true;
+        form.classList.add("is-processing");
+        return;
+      }
+
+      submitButton.disabled = false;
+      submitButton.textContent = submitButton.dataset.originalText || submitButton.textContent;
+      form.classList.remove("is-processing");
+    }
+
+    function resetToolForm(form) {
+      form.reset();
+      form.classList.remove("has-files");
+
+      if (form.contains(mergeInput)) {
+        clearMergeQueue();
+      }
+
+      if (form.contains(splitInput)) {
+        splitPreview.hidden = true;
+        splitPreview.textContent = "";
+      }
+    }
+
+    if (mergeInput) {
+      mergeInput.addEventListener("change", () => {
+        const incomingFiles = Array.from(mergeInput.files).filter((file) => {
+          return file.name.toLowerCase().endsWith(".pdf");
+        });
+
+        incomingFiles.forEach((file) => {
+          const isDuplicate = mergeFiles.some((queuedFile) => {
+            return queuedFile.name === file.name && queuedFile.size === file.size && queuedFile.lastModified === file.lastModified;
+          });
+
+          if (!isDuplicate) {
+            mergeFiles.push(file);
+          }
+        });
+
+        syncMergeInput();
+        renderMergeFiles();
+        updateFormFileState(mergeInput.form);
+      });
+    }
+
+    if (splitInput) {
+      splitInput.addEventListener("change", async () => {
+        splitPreview.hidden = true;
+        splitPreview.textContent = "";
+
+        if (!splitInput.files.length) {
+          return;
+        }
+
+        const formData = new FormData();
+        formData.append("file", splitInput.files[0]);
+
+        try {
+          const response = await fetch("/split/page-count", {
+            method: "POST",
+            body: formData,
+            headers: {
+              "X-Requested-With": "fetch"
+            }
+          });
+
+          if (!response.ok) {
+            throw new Error(await response.text());
+          }
+
+          const data = await response.json();
+          splitPreview.hidden = false;
+          splitPreview.textContent = `This PDF has ${data.page_count} page${data.page_count === 1 ? "" : "s"}.`;
+          updateFormFileState(splitInput.form);
+        } catch (error) {
+          splitPreview.hidden = false;
+          splitPreview.textContent = error.message || "Unable to preview this PDF.";
+          updateFormFileState(splitInput.form);
+        }
+      });
+    }
+
+    document.querySelectorAll(".tool-form input[type='file']").forEach((input) => {
+      if (input === mergeInput || input === splitInput) {
+        return;
+      }
+
+      input.addEventListener("change", () => {
+        updateFormFileState(input.form);
+      });
+    });
+
+    if (addMergeFiles) {
+      addMergeFiles.addEventListener("click", () => {
+        mergeInput.click();
+      });
+    }
+
+    if (clearMergeFiles) {
+      clearMergeFiles.addEventListener("click", () => {
+        clearMergeQueue();
+        updateFormFileState(mergeInput.form);
+      });
+    }
+
+    document.querySelectorAll("[data-drop-zone]").forEach((zone) => {
+      const input = zone.querySelector("input[type='file']");
+
+      ["dragenter", "dragover"].forEach((eventName) => {
+        zone.addEventListener(eventName, (event) => {
+          event.preventDefault();
+          zone.classList.add("is-dragging");
+        });
+      });
+
+      ["dragleave", "drop"].forEach((eventName) => {
+        zone.addEventListener(eventName, () => {
+          zone.classList.remove("is-dragging");
+        });
+      });
+
+      zone.addEventListener("drop", (event) => {
+        event.preventDefault();
+        const droppedFiles = Array.from(event.dataTransfer.files);
+
+        if (!droppedFiles.length) {
+          return;
+        }
+
+        if (input === mergeInput) {
+          mergeFiles.push(...droppedFiles.filter((file) => {
+            return file.name.toLowerCase().endsWith(".pdf") && !mergeFiles.some((queuedFile) => {
+              return queuedFile.name === file.name && queuedFile.size === file.size && queuedFile.lastModified === file.lastModified;
+            });
+          }));
+          syncMergeInput();
+          renderMergeFiles();
+          updateFormFileState(input.form);
+          return;
+        }
+
+        setInputFiles(input, [droppedFiles[0]]);
+      });
+    });
+
+    function getDownloadName(response, fallbackName) {
+      const disposition = response.headers.get("Content-Disposition") || "";
+      const match = disposition.match(/filename="?([^"]+)"?/i);
+      return match ? match[1] : fallbackName;
+    }
+
+    function downloadBlob(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.append(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function showCompressionResult(form, response) {
+      const result = form.querySelector("[data-compress-result]");
+      if (!result) {
+        return;
+      }
+
+      const originalSize = Number(response.headers.get("X-Original-Size"));
+      const compressedSize = Number(response.headers.get("X-Compressed-Size"));
+      const bytesSaved = Number(response.headers.get("X-Bytes-Saved"));
+
+      result.hidden = false;
+      result.innerHTML = `
+        <strong>Compression complete</strong>
+        <span>Original: ${formatBytes(originalSize)}</span>
+        <span>Compressed: ${formatBytes(compressedSize)}</span>
+        <span>Saved: ${formatBytes(bytesSaved)}</span>
+      `;
+    }
+
+    document.querySelectorAll(".tool-form").forEach((form) => {
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        if (form.contains(mergeInput) && mergeFiles.length < 2) {
+          mergeInput.setCustomValidity("Choose at least two PDF files to merge.");
+          mergeInput.reportValidity();
+          mergeInput.setCustomValidity("");
+          return;
+        }
+
+        if (!form.reportValidity()) {
+          return;
+        }
+
+        clearPanelFeedback(form);
+        setProcessing(form, true);
+
+        try {
+          const response = await fetch(form.action, {
+            method: form.method,
+            body: new FormData(form),
+            headers: {
+              "X-Requested-With": "fetch"
+            }
+          });
+
+          if (!response.ok) {
+            throw new Error(await response.text());
+          }
+
+          const blob = await response.blob();
+          downloadBlob(blob, getDownloadName(response, "download"));
+
+          if (form.dataset.toolForm === "compress") {
+            showCompressionResult(form, response);
+          } else {
+            setFormMessage(form, "Done. Your download has started.", "success");
+          }
+
+          resetToolForm(form);
+        } catch (error) {
+          setFormMessage(form, error.message || "Something went wrong. Please try again.");
+        } finally {
+          setProcessing(form, false);
+        }
+      });
+    });
+  </script>
+</body>
+
 </html>
