@@ -22,9 +22,9 @@
     </a>
     <nav class="primary-nav" aria-label="PDF tools">
       <a href="/" data-home-link>Home</a>
+      <a href="/compress" data-tool-link="compress">Compress PDF</a>
       <a href="/merge" data-tool-link="merge">Merge PDF</a>
       <a href="/split" data-tool-link="split">Split PDF</a>
-      <a href="/compress" data-tool-link="compress">Compress PDF</a>
       <a href="/convert" data-tool-link="convert">Convert PDF</a>
     </nav>
     <div class="header-actions">
@@ -43,7 +43,7 @@
       <p class="eyebrow">Rastriya Jeewan Beema Company Limited</p>
       <h1 data-hero-title>All PDF tools in one place</h1>
       <p class="lede" data-hero-copy>
-        Select a tool to open its upload form. The page stays clean until you choose what you need.
+         Convert, compress, merge, and manage your PDF files securely. Choose a tool to get started.
       </p>
     </section>
 
@@ -54,6 +54,18 @@
     {% endif %}
 
     <section class="tool-launcher" id="tools" aria-label="Available PDF tools" data-tool-launcher {% if active_tool %}hidden{% endif %}>
+
+      <a class="tool-card" href="/compress" data-tool-card="compress" aria-controls="compress-panel">
+        <span class="feature-icon compress-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" focusable="false">
+            <path
+              d="M6 3h8l4 4v14H6V3zm8 1.5V7h2.5L14 4.5zM9 10h6v2H9v-2zm1.5 3h3L12 15.2 10.5 13zm3 5h-3l1.5-2.2L13.5 18z" />
+          </svg>
+        </span>
+        <strong>Compress PDF</strong>
+        <span>Reduce PDF and image file size.</span>
+      </a>
+
       <a class="tool-card" href="/merge" data-tool-card="merge" aria-controls="merge-panel">
         <span class="feature-icon merge-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24" focusable="false">
@@ -76,16 +88,7 @@
         <span>Extract any pages or ranges.</span>
       </a>
 
-      <a class="tool-card" href="/compress" data-tool-card="compress" aria-controls="compress-panel">
-        <span class="feature-icon compress-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" focusable="false">
-            <path
-              d="M6 3h8l4 4v14H6V3zm8 1.5V7h2.5L14 4.5zM9 10h6v2H9v-2zm1.5 3h3L12 15.2 10.5 13zm3 5h-3l1.5-2.2L13.5 18z" />
-          </svg>
-        </span>
-        <strong>Compress PDF</strong>
-        <span>Reduce PDF and image file size.</span>
-      </a>
+      
 
       <a class="tool-card" href="/convert" data-tool-card="convert" aria-controls="convert-panel">
         <span class="feature-icon convert-icon" aria-hidden="true">
@@ -320,7 +323,7 @@
       otherTools.hidden = true;
       otherToolsGrid.innerHTML = "";
       heroTitle.textContent = "All PDF tools in one place";
-      heroCopy.textContent = "Select a tool to open its upload form. The page stays clean until you choose what you need.";
+      heroCopy.textContent = "Convert, compress, merge, and manage your PDF files securely. Choose a tool to get started.";
       if (shouldScroll) {
         document.querySelector("main").scrollIntoView({ behavior: "smooth", block: "start" });
       }
