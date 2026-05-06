@@ -13,7 +13,7 @@ from compressor import CompressionError, CompressionSettings, compress_bytes, co
 from pdf_tools import (
     DocumentToolError,
     ToolResult,
-    convert_image_to_pdf_bytes,
+    convert_image_files_to_pdf_bytes,
     convert_pdf_to_jpg_zip,
     convert_pdf_to_jpg_zip_bytes,
     convert_to_pdf,
@@ -269,25 +269,32 @@ def split_page_count():
 
 @app.post("/convert")
 def convert():
-    uploaded_file = request.files.get("file")
-    if not uploaded_file or uploaded_file.filename == "":
+    uploaded_files = [file for file in request.files.getlist("file") if file and file.filename]
+    if not uploaded_files:
         return render_tool_error("Choose a file to convert first.", active_tool="convert", status=400)
 
-    filename = secure_filename(uploaded_file.filename)
     convert_to = request.form.get("target", "pdf").lower()
-
-    suffix = Path(filename).suffix.lower()
-    input_data = uploaded_file.read()
 
     try:
         if convert_to == "pdf":
-            if not has_allowed_extension(filename, IMAGE_ONLY_EXTENSIONS):
-                raise DocumentToolError("PDF conversion accepts JPG, JPEG, PNG, or WEBP images.")
-            output_data = convert_image_to_pdf_bytes(input_data)
-            return build_memory_download_response(output_data, "application/pdf", f"{Path(filename).stem}.pdf")
+            image_files: list[tuple[str, bytes]] = []
+            for index, uploaded_file in enumerate(uploaded_files, start=1):
+                filename = secure_filename(uploaded_file.filename)
+                if not has_allowed_extension(filename, IMAGE_ONLY_EXTENSIONS):
+                    raise DocumentToolError("PDF conversion accepts JPG, JPEG, PNG, or WEBP images.")
+                image_files.append((filename or f"image-{index:02d}.jpg", uploaded_file.read()))
+
+            output_data = convert_image_files_to_pdf_bytes(image_files)
+            download_name = "combined-images.pdf" if len(image_files) > 1 else f"{Path(image_files[0][0]).stem}.pdf"
+            return build_memory_download_response(output_data, "application/pdf", download_name)
         elif convert_to == "jpg":
+            uploaded_file = uploaded_files[0]
+            if len(uploaded_files) != 1:
+                raise DocumentToolError("JPG conversion accepts one PDF file only.")
+            filename = secure_filename(uploaded_file.filename)
             if not has_allowed_extension(filename, PDF_ONLY_EXTENSIONS):
                 raise DocumentToolError("JPG conversion accepts PDF files only.")
+            input_data = uploaded_file.read()
             output_data = convert_pdf_to_jpg_zip_bytes(input_data, Path(filename).stem)
             return build_memory_download_response(output_data, "application/zip", f"{Path(filename).stem}-jpg.zip")
         else:

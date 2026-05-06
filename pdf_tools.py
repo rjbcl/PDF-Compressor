@@ -199,13 +199,38 @@ def convert_image_to_pdf_bytes(input_data: bytes) -> bytes:
     try:
         with Image.open(BytesIO(input_data)) as image:
             image = ImageOps.exif_transpose(image)
-            if image.mode not in ("RGB", "L"):
+            if image.mode != "RGB":
                 image = image.convert("RGB")
             output = BytesIO()
             image.save(output, format="PDF", resolution=150.0)
             return output.getvalue()
     except OSError as exc:
         raise DocumentToolError("Unable to convert this image to PDF.") from exc
+
+
+def convert_image_files_to_pdf_bytes(files: list[tuple[str, bytes]]) -> bytes:
+    images = []
+
+    try:
+        for filename, data in files:
+            with Image.open(BytesIO(data)) as image:
+                image = ImageOps.exif_transpose(image)
+                if image.mode != "RGB":
+                    image = image.convert("RGB")
+                images.append(image.copy())
+
+        if not images:
+            raise DocumentToolError("Choose at least one image to convert.")
+
+        output = BytesIO()
+        first_image, *rest = images
+        first_image.save(output, format="PDF", resolution=150.0, save_all=True, append_images=rest)
+        return output.getvalue()
+    except OSError as exc:
+        raise DocumentToolError("Unable to convert these images to PDF.") from exc
+    finally:
+        for image in images:
+            image.close()
 
 
 def convert_pdf_to_jpg_zip(input_path: Path, output_path: Path) -> ToolResult:
