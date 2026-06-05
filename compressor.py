@@ -97,7 +97,9 @@ def compress_pdf_bytes(input_data: bytes, settings: CompressionSettings) -> byte
             new_page = target.new_page(width=page.rect.width, height=page.rect.height)
             new_page.insert_image(rect, stream=image_bytes)
 
-        return target.tobytes(garbage=4, deflate=True, clean=True)
+        compressed = target.tobytes(garbage=4, deflate=True, clean=True)
+        # Never return a result larger than the original
+        return compressed if len(compressed) < len(input_data) else input_data
     except RuntimeError as exc:
         raise CompressionError("Unable to compress this PDF.") from exc
     finally:
@@ -159,9 +161,17 @@ def compress_pdf(input_path: Path, output_path: Path, settings: CompressionSetti
         source.close()
         target.close()
 
+    compressed_size = output_path.stat().st_size
+
+    # If compression made the file larger, overwrite with the original
+    if compressed_size > original_size:
+        import shutil
+        shutil.copy2(input_path, output_path)
+        compressed_size = original_size
+
     return CompressionResult(
         original_size=original_size,
-        compressed_size=output_path.stat().st_size,
+        compressed_size=compressed_size,
         mimetype="application/pdf",
         output_path=output_path,
     )

@@ -90,8 +90,6 @@
         <span>&#2346;&#2371;&#2359;&#2381;&#2336;&#2361;&#2352;&#2370; &#2331;&#2366;&#2344;&#2381;&#2344;&#2369;&#2361;&#2379;&#2360;&#2381; &#2357;&#2366; &#2331;&#2369;&#2335;&#2381;&#2351;&#2366;&#2313;&#2344;&#2369;&#2361;&#2379;&#2360;&#2381; <br> (Extract any pages or ranges)</span>
       </a>
 
-      
-
       <a class="tool-card" href="/convert" data-tool-card="convert" aria-controls="convert-panel">
         <span class="feature-icon convert-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24" focusable="false">
@@ -271,17 +269,14 @@
         title: "Merge PDF files",
         copy: "धेरै PDF फाइलहरूलाई चाहेको क्रममा एउटै फाइलमा मिलाउनुहोस्।"
       },
-
       split: {
         title: "Split PDF file",
         copy: "PDF लाई पृष्ठ अनुसार विभाजन गर्नुहोस् वा आवश्यक पृष्ठ मात्र निकाल्नुहोस्।"
       },
-
       compress: {
         title: "Compress PDF file",
         copy: "गुणस्तर कायम राख्दै फाइलको आकार घटाउनुहोस्।"
       },
-
       convert: {
         title: "Convert PDF files",
         copy: "तस्बिरलाई PDF मा वा PDF लाई JPG फाइलमा रूपान्तरण गर्नुहोस्।"
@@ -745,9 +740,21 @@
         setProcessing(form, true);
 
         try {
+          // For the merge form, build FormData directly from the mergeFiles array.
+          // Relying on new FormData(form) to read programmatically-assigned
+          // input.files (via DataTransfer) is unreliable across browsers (e.g. Firefox)
+          // and causes Flask to receive zero files, returning a 400.
+          let formData;
+          if (form.contains(mergeInput)) {
+            formData = new FormData();
+            mergeFiles.forEach((file) => formData.append("files", file, file.name));
+          } else {
+            formData = new FormData(form);
+          }
+
           const response = await fetch(form.action, {
             method: form.method,
-            body: new FormData(form),
+            body: formData,
             headers: {
               "X-Requested-With": "fetch"
             }

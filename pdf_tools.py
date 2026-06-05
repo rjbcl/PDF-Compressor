@@ -25,15 +25,20 @@ def merge_pdfs(input_paths: list[Path], output_path: Path) -> ToolResult:
 
     try:
         for path in input_paths:
-            with fitz.open(path) as source:
+            # Open without context manager so the source stays alive until
+            # merged.save() fully flushes — avoids lazy-copy use-after-close.
+            source = fitz.open(path)
+            try:
                 if source.page_count == 0:
                     raise DocumentToolError(f"{path.name} has no pages to merge.")
                 merged.insert_pdf(source)
+            finally:
+                source.close()
 
         if merged.page_count == 0:
             raise DocumentToolError("Choose at least one PDF file to merge.")
 
-        merged.save(output_path, garbage=4, deflate=True)
+        merged.save(output_path, garbage=4, deflate=True, clean=True)
     except DocumentToolError:
         raise
     except RuntimeError as exc:
@@ -53,15 +58,20 @@ def merge_pdf_bytes(files: list[tuple[str, bytes]]) -> bytes:
 
     try:
         for filename, data in files:
-            with fitz.open(stream=data, filetype="pdf") as source:
+            # Keep source open until tobytes() is called — fitz insert_pdf can
+            # hold references into the source document during serialisation.
+            source = fitz.open(stream=data, filetype="pdf")
+            try:
                 if source.page_count == 0:
                     raise DocumentToolError(f"{filename} has no pages to merge.")
                 merged.insert_pdf(source)
+            finally:
+                source.close()
 
         if merged.page_count == 0:
             raise DocumentToolError("Choose at least one PDF file to merge.")
 
-        return merged.tobytes(garbage=4, deflate=True)
+        return merged.tobytes(garbage=4, deflate=True, clean=True)
     except DocumentToolError:
         raise
     except RuntimeError as exc:
@@ -99,7 +109,7 @@ def split_pdf(input_path: Path, output_path: Path, ranges_text: str, output_mode
                 try:
                     for start, end in ranges:
                         selected.insert_pdf(source, from_page=start - 1, to_page=end - 1)
-                    selected.save(output_path, garbage=4, deflate=True)
+                    selected.save(output_path, garbage=4, deflate=True, clean=True)
                 finally:
                     selected.close()
 
@@ -117,7 +127,7 @@ def split_pdf(input_path: Path, output_path: Path, ranges_text: str, output_mode
                         part.insert_pdf(source, from_page=start - 1, to_page=end - 1)
                         archive.writestr(
                             f"{stem}-part-{index:02d}-pages-{start}-{end}.pdf",
-                            part.tobytes(garbage=4, deflate=True),
+                            part.tobytes(garbage=4, deflate=True, clean=True),
                         )
                     finally:
                         part.close()
@@ -154,7 +164,7 @@ def split_pdf_bytes(input_data: bytes, stem: str, ranges_text: str, output_mode:
                 try:
                     for start, end in ranges:
                         selected.insert_pdf(source, from_page=start - 1, to_page=end - 1)
-                    return selected.tobytes(garbage=4, deflate=True), "application/pdf", "split-selected-pages.pdf"
+                    return selected.tobytes(garbage=4, deflate=True, clean=True), "application/pdf", "split-selected-pages.pdf"
                 finally:
                     selected.close()
 
@@ -166,7 +176,7 @@ def split_pdf_bytes(input_data: bytes, stem: str, ranges_text: str, output_mode:
                         part.insert_pdf(source, from_page=start - 1, to_page=end - 1)
                         archive.writestr(
                             f"{stem}-part-{index:02d}-pages-{start}-{end}.pdf",
-                            part.tobytes(garbage=4, deflate=True),
+                            part.tobytes(garbage=4, deflate=True, clean=True),
                         )
                     finally:
                         part.close()
