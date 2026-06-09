@@ -162,30 +162,63 @@ def convert_page():
 
 @app.post("/compress")
 def compress():
+    
     uploaded_file = request.files.get("file")
     if not uploaded_file or uploaded_file.filename == "":
         return render_tool_error("Choose a PDF or image file first.", active_tool="compress", status=400)
 
-    filename = secure_filename(uploaded_file.filename)
-    if not is_allowed_file(filename):
-        return render_tool_error("Unsupported file type. Use PDF, JPG, JPEG, PNG, or WEBP.", active_tool="compress")
+    original_filename = uploaded_file.filename or ""
+    print("=" * 50)
+    print("Original filename:", repr(original_filename))
+    print("Suffix:", repr(Path(original_filename).suffix.lower()))
+    print("Allowed:", ALLOWED_EXTENSIONS)
+    print("=" * 50)
+
+    suffix = Path(original_filename).suffix.lower()
+    print("ROUTE SUFFIX =", repr(suffix))
+
+    if suffix not in ALLOWED_EXTENSIONS:
+        return render_tool_error(
+            "Unsupported file type. Use PDF, JPG, JPEG, PNG, or WEBP.",
+            active_tool="compress",
+        )
+
+    validated_suffix = suffix
+
+    filename = secure_filename(original_filename)
+    if not filename:
+        filename = f"upload{validated_suffix}"
 
     profile = request.form.get("profile", "balanced").lower()
     settings = CompressionSettings.from_profile(profile)
 
-    suffix = Path(filename).suffix.lower()
-
+    print("CALLING compress_bytes WITH =", repr(validated_suffix))
     try:
         output_data, mimetype, original_size, compressed_size, output_suffix = compress_bytes(
             uploaded_file.read(),
             suffix,
             settings,
         )
-    except CompressionError as exc:
-        return render_tool_error(str(exc), active_tool="compress", status=400)
-    except Exception:
-        return render_tool_error("Something went wrong while compressing the file.", active_tool="compress", status=500)
 
+    except CompressionError as exc:
+        print("CompressionError:", repr(exc))
+        return render_tool_error(
+            str(exc),
+            active_tool="compress",
+            status=400,
+        )
+
+    except Exception as exc:
+        import traceback
+
+        traceback.print_exc()
+        print("Exception:", repr(exc))
+
+        return render_tool_error(
+            "Something went wrong while compressing the file.",
+            active_tool="compress",
+            status=500,
+        )
     download_stem = Path(filename).stem
     response = build_memory_download_response(
         output_data,

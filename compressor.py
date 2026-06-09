@@ -51,15 +51,49 @@ def compress_file(input_path: Path, output_path: Path, settings: CompressionSett
     raise CompressionError("Unsupported file type.")
 
 
-def compress_bytes(input_data: bytes, suffix: str, settings: CompressionSettings) -> tuple[bytes, str, int, int, str]:
+def compress_bytes(
+    input_data: bytes,
+    suffix: str,
+    settings: CompressionSettings
+) -> tuple[bytes, str, int, int, str]:
+    print("compress_bytes received =", repr(suffix))
+    print("Entered compress_pdf_bytes")
+    print("=" * 50)
+    print("compress_bytes()")
+    print("suffix:", repr(suffix))
+    print("input size:", len(input_data))
+    print("=" * 50)
+
     suffix = suffix.lower()
+
     if suffix == ".pdf":
+        print("Processing PDF...")
         output_data = compress_pdf_bytes(input_data, settings)
-        return output_data, "application/pdf", len(input_data), len(output_data), ".pdf"
+        return (
+            output_data,
+            "application/pdf",
+            len(input_data),
+            len(output_data),
+            ".pdf",
+        )
+
     if suffix in {".jpg", ".jpeg", ".png", ".webp"}:
-        output_data, mimetype, output_suffix = compress_image_bytes(input_data, suffix, settings)
-        return output_data, mimetype, len(input_data), len(output_data), output_suffix
-    raise CompressionError("Unsupported file type.")
+        print("Processing Image...")
+        output_data, mimetype, output_suffix = compress_image_bytes(
+            input_data,
+            suffix,
+            settings,
+        )
+        return (
+            output_data,
+            mimetype,
+            len(input_data),
+            len(output_data),
+            output_suffix,
+        )
+
+    print("UNSUPPORTED SUFFIX:", repr(suffix))
+    raise CompressionError(f"Unsupported file type: {suffix}")
 
 
 # ---------------------------------------------------------------------------
