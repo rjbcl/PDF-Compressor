@@ -242,11 +242,16 @@ def merge():
 
     try:
         for index, uploaded_file in enumerate(uploaded_files, start=1):
-            filename = secure_filename(uploaded_file.filename)
-            if not has_allowed_extension(filename, PDF_ONLY_EXTENSIONS):
+            original_name = uploaded_file.filename or ""
+
+            # Validate using the ORIGINAL filename
+            if not has_allowed_extension(original_name, PDF_ONLY_EXTENSIONS):
                 raise DocumentToolError("Merge accepts PDF files only.")
 
-            input_files.append((filename or f"merge-{index:02d}.pdf", uploaded_file.read()))
+            # Internal safe filename (ASCII only)
+            safe_name = f"merge-{index:02d}{Path(original_name).suffix.lower()}"
+
+            input_files.append((safe_name, uploaded_file.read()))
 
         output_data = merge_pdf_bytes(input_files)
     except DocumentToolError as exc:
@@ -263,15 +268,27 @@ def split():
     if not uploaded_file or uploaded_file.filename == "":
         return render_tool_error("Choose a PDF file to split first.", active_tool="split", status=400)
 
-    filename = secure_filename(uploaded_file.filename)
-    if not has_allowed_extension(filename, PDF_ONLY_EXTENSIONS):
-        return render_tool_error("Split accepts PDF files only.", active_tool="split", status=400)
+    original_name = uploaded_file.filename or ""
+
+    if not has_allowed_extension(original_name, PDF_ONLY_EXTENSIONS):
+        return render_tool_error(
+            "Split accepts PDF files only.",
+            active_tool="split",
+            status=400,
+        )
+
+    safe_name = f"split{Path(original_name).suffix.lower()}"
 
     ranges_text = request.form.get("ranges", "")
     output_mode = request.form.get("split_output", "zip").lower()
     try:
         data = uploaded_file.read()
-        output_data, mimetype, download_name = split_pdf_bytes(data, Path(filename).stem, ranges_text, output_mode)
+        output_data, mimetype, download_name = split_pdf_bytes(
+                                                                    data,
+                                                                    Path(safe_name).stem,
+                                                                    ranges_text,
+                                                                    output_mode,
+                                                                )
     except DocumentToolError as exc:
         return render_tool_error(str(exc), active_tool="split", status=400)
     except Exception:
@@ -286,8 +303,9 @@ def split_page_count():
     if not uploaded_file or uploaded_file.filename == "":
         return "Choose a PDF file first.", 400, {"Content-Type": "text/plain; charset=utf-8"}
 
-    filename = secure_filename(uploaded_file.filename)
-    if not has_allowed_extension(filename, PDF_ONLY_EXTENSIONS):
+    original_name = uploaded_file.filename or ""
+
+    if not has_allowed_extension(original_name, PDF_ONLY_EXTENSIONS):
         return "Page preview accepts PDF files only.", 400, {"Content-Type": "text/plain; charset=utf-8"}
 
     try:
@@ -311,25 +329,57 @@ def convert():
     try:
         if convert_to == "pdf":
             image_files: list[tuple[str, bytes]] = []
+
             for index, uploaded_file in enumerate(uploaded_files, start=1):
-                filename = secure_filename(uploaded_file.filename)
-                if not has_allowed_extension(filename, IMAGE_ONLY_EXTENSIONS):
-                    raise DocumentToolError("PDF conversion accepts JPG, JPEG, PNG, or WEBP images.")
-                image_files.append((filename or f"image-{index:02d}.jpg", uploaded_file.read()))
+                original_name = uploaded_file.filename or ""
+
+                if not has_allowed_extension(original_name, IMAGE_ONLY_EXTENSIONS):
+                    raise DocumentToolError(
+                        "PDF conversion accepts JPG, JPEG, PNG, or WEBP images."
+                    )
+
+                safe_name = f"image-{index:02d}{Path(original_name).suffix.lower()}"
+
+                image_files.append(
+                    (safe_name, uploaded_file.read())
+                )
 
             output_data = convert_image_files_to_pdf_bytes(image_files)
-            download_name = "combined-images.pdf" if len(image_files) > 1 else f"{Path(image_files[0][0]).stem}.pdf"
-            return build_memory_download_response(output_data, "application/pdf", download_name)
+
+            download_name = (
+                "combined-images.pdf"
+                if len(image_files) > 1
+                else f"{Path(image_files[0][0]).stem}.pdf"
+            )
+
+            return build_memory_download_response(
+                output_data,
+                "application/pdf",
+                download_name,
+            )
         elif convert_to == "jpg":
             uploaded_file = uploaded_files[0]
             if len(uploaded_files) != 1:
                 raise DocumentToolError("JPG conversion accepts one PDF file only.")
-            filename = secure_filename(uploaded_file.filename)
-            if not has_allowed_extension(filename, PDF_ONLY_EXTENSIONS):
+            original_name = uploaded_file.filename or ""
+
+            if not has_allowed_extension(original_name, PDF_ONLY_EXTENSIONS):
                 raise DocumentToolError("JPG conversion accepts PDF files only.")
+
+            safe_stem = "converted-pdf"
+
             input_data = uploaded_file.read()
-            output_data = convert_pdf_to_jpg_zip_bytes(input_data, Path(filename).stem)
-            return build_memory_download_response(output_data, "application/zip", f"{Path(filename).stem}-jpg.zip")
+
+            output_data = convert_pdf_to_jpg_zip_bytes(
+                input_data,
+                safe_stem,
+            )
+
+            return build_memory_download_response(
+                output_data,
+                "application/zip",
+                "converted-pdf-jpg.zip",
+            )
         else:
             raise DocumentToolError("Unsupported conversion option.")
     except DocumentToolError as exc:
