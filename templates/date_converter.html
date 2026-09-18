@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Date Converter — BS ↔ AD</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    * { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: linear-gradient(135deg, #f1f5f9, #eff6ff 48%, #f0fdfa); }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-3 sm:p-6 relative overflow-hidden">
+  <div class="absolute -top-24 -left-20 w-72 h-72 bg-blue-200/40 rounded-full blur-3xl"></div>
+  <div class="absolute -bottom-24 -right-20 w-80 h-80 bg-green-200/40 rounded-full blur-3xl"></div>
+
+  <main class="w-full max-w-lg relative z-10" id="app">
+    <div class="flex justify-end mb-4">
+      <div class="flex rounded-full overflow-hidden bg-white/70 backdrop-blur shadow border border-white">
+        <button id="enBtn" class="px-4 py-2 text-sm font-bold bg-blue-500 text-white" onclick="setLanguage('en')">EN</button>
+        <button id="neBtn" class="px-4 py-2 text-sm font-bold text-slate-500" onclick="setLanguage('ne')">ने</button>
+      </div>
+    </div>
+
+    <header class="text-center mb-7">
+      <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white/75 shadow-lg border border-white mb-4 text-blue-500">
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+      </div>
+      <h1 id="title" class="text-3xl font-bold text-slate-700">Date Converter</h1>
+      <p id="subtitle" class="text-slate-500 text-sm mt-1">Convert between Bikram Sambat (BS) and Anno Domini (AD)</p>
+    </header>
+
+    <section class="bg-white/65 backdrop-blur-xl rounded-3xl shadow-xl border border-white/80 overflow-hidden">
+      <div class="flex p-2 m-4 mb-0 bg-slate-100/70 rounded-2xl">
+        <button id="bsTab" class="flex-1 py-3 rounded-xl font-semibold bg-white text-blue-600 shadow" onclick="setMode('bs-to-ad')">BS → AD</button>
+        <button id="adTab" class="flex-1 py-3 rounded-xl font-semibold text-slate-500" onclick="setMode('ad-to-bs')">AD → BS</button>
+      </div>
+
+      <div class="p-5 sm:p-6 pt-3">
+        <div class="rounded-2xl p-4 mb-6 bg-gradient-to-r from-blue-50/90 to-teal-50/90 border border-white shadow-inner">
+          <div class="flex items-center justify-between gap-2">
+            <span id="todayLabel" class="text-slate-500 text-xs uppercase tracking-wider font-semibold">Today</span>
+            <button id="todayBtn" class="text-xs text-blue-600 bg-white/70 px-3 py-1 rounded-full" onclick="useToday()">Use Today's Date</button>
+          </div>
+          <div class="mt-2 space-y-1 text-sm"><div id="todayBs" class="font-semibold text-slate-700"></div><div id="todayAd" class="text-slate-500"></div></div>
+        </div>
+
+        <label id="inputLabel" class="block text-slate-600 text-sm font-semibold mb-3">Enter Bikram Sambat (BS) Date</label>
+        <div class="grid grid-cols-3 gap-3">
+          <label class="text-xs text-slate-500 font-medium">Year<select id="year" class="mt-1 w-full rounded-xl border border-white bg-white/75 p-2.5 text-slate-700 shadow-inner"></select></label>
+          <label class="text-xs text-slate-500 font-medium">Month<select id="month" class="mt-1 w-full rounded-xl border border-white bg-white/75 p-2.5 text-slate-700 shadow-inner"></select></label>
+          <label class="text-xs text-slate-500 font-medium">Day<select id="day" class="mt-1 w-full rounded-xl border border-white bg-white/75 p-2.5 text-slate-700 shadow-inner"></select></label>
+        </div>
+
+        <div id="error" class="hidden mt-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm"></div>
+        <div id="result" class="hidden mt-4 p-4 rounded-2xl bg-gradient-to-r from-blue-50 to-green-50 border border-green-200/60"><div id="resultLabel" class="text-green-600 text-xs uppercase tracking-wider font-semibold"></div><div id="resultText" class="mt-1 text-slate-700 font-bold"></div></div>
+        <div class="mt-6 flex gap-3"><button id="convertBtn" class="flex-1 rounded-xl py-3 bg-gradient-to-r from-blue-400 to-green-400 text-white font-bold shadow-lg" onclick="convert()">Convert</button><button class="rounded-xl px-4 bg-white/75 border border-white shadow text-slate-600 text-xl" onclick="swapMode()" aria-label="Swap conversion mode">⇄</button></div>
+      </div>
+    </section>
+    <footer class="mt-5 text-center text-xs text-slate-500"><p id="range">BS Year Range: 2000 - 2090 | Reference: BS 2000/01/01 = AD 1943/04/14</p><p id="brand" class="mt-1 font-medium text-slate-600">🇳🇵 Rastriya Jeewan Beema Calendar Converter</p></footer>
+  </main>
+
+<script>
+const data = {
+2000:[30,32,31,32,31,30,30,30,29,30,29,31],2001:[31,31,32,31,31,31,30,29,30,29,30,30],2002:[31,31,32,32,31,30,30,29,30,29,30,30],2003:[31,32,31,32,31,30,30,30,29,29,30,31],2004:[30,32,31,32,31,30,30,30,29,30,29,31],2005:[31,31,32,31,31,31,30,29,30,29,30,30],2006:[31,31,32,32,31,30,30,29,30,29,30,30],2007:[31,32,31,32,31,30,30,30,29,29,30,31],2008:[31,31,31,32,31,31,29,30,30,29,29,31],2009:[31,31,32,31,31,31,30,29,30,29,30,30],2010:[31,31,32,32,31,30,30,29,30,29,30,30],2011:[31,32,31,32,31,30,30,30,29,29,30,31],2012:[31,31,31,32,31,31,29,30,30,29,30,30],2013:[31,31,32,31,31,31,30,29,30,29,30,30],2014:[31,31,32,32,31,30,30,29,30,29,30,30],2015:[31,32,31,32,31,30,30,30,29,29,30,31],2016:[31,31,31,32,31,31,29,30,30,29,30,30],2017:[31,31,32,31,31,31,30,29,30,29,30,30],2018:[31,32,31,32,31,30,30,29,30,29,30,30],2019:[31,32,31,32,31,30,30,30,29,30,29,31],2020:[31,31,31,32,31,31,30,29,30,29,30,30],2021:[31,31,32,31,31,31,30,29,30,29,30,30],2022:[31,32,31,32,31,30,30,30,29,29,30,30],2023:[31,32,31,32,31,30,30,30,29,30,29,31],2024:[31,31,31,32,31,31,30,29,30,29,30,30],2025:[31,31,32,31,31,31,30,29,30,29,30,30],2026:[31,32,31,32,31,30,30,30,29,29,30,31],2027:[30,32,31,32,31,30,30,30,29,30,29,31],2028:[31,31,32,31,31,31,30,29,30,29,30,30],2029:[31,31,32,31,32,30,30,29,30,29,30,30],2030:[31,32,31,32,31,30,30,30,29,29,30,31],2031:[30,32,31,32,31,30,30,30,29,30,29,31],2032:[31,31,32,31,31,31,30,29,30,29,30,30],2033:[31,31,32,32,31,30,30,29,30,29,30,30],2034:[31,32,31,32,31,30,30,30,29,29,30,31],2035:[30,32,31,32,31,31,29,30,30,29,29,31],2036:[31,31,32,31,31,31,30,29,30,29,30,30],2037:[31,31,32,32,31,30,30,29,30,29,30,30],2038:[31,32,31,32,31,30,30,30,29,29,30,31],2039:[31,31,31,32,31,31,29,30,30,29,30,30],2040:[31,31,32,31,31,31,30,29,30,29,30,30],2041:[31,31,32,32,31,30,30,29,30,29,30,30],2042:[31,32,31,32,31,30,30,30,29,29,30,31],2043:[31,31,31,32,31,31,29,30,30,29,30,30],2044:[31,31,32,31,31,31,30,29,30,29,30,30],2045:[31,32,31,32,31,30,30,29,30,29,30,30],2046:[31,32,31,32,31,30,30,30,29,29,30,31],2047:[31,31,31,32,31,31,30,29,30,29,30,30],2048:[31,31,32,31,31,31,30,29,30,29,30,30],2049:[31,32,31,32,31,30,30,30,29,29,30,30],2050:[31,32,31,32,31,30,30,30,29,30,29,31],2051:[31,31,31,32,31,31,30,29,30,29,30,30],2052:[31,31,32,31,31,31,30,29,30,29,30,30],2053:[31,32,31,32,31,30,30,30,29,29,30,30],2054:[31,32,31,32,31,30,30,30,29,30,29,31],2055:[31,31,32,31,31,31,30,29,30,29,30,30],2056:[31,31,32,31,32,30,30,29,30,29,30,30],2057:[31,32,31,32,31,30,30,30,29,29,30,31],2058:[30,32,31,32,31,30,30,30,29,30,29,31],2059:[31,31,32,31,31,31,30,29,30,29,30,30],2060:[31,31,32,32,31,30,30,29,30,29,30,30],2061:[31,32,31,32,31,30,30,30,29,29,30,31],2062:[31,32,31,32,31,31,29,30,29,30,29,31],2063:[31,31,32,31,31,31,30,29,30,29,30,30],2064:[31,31,32,32,31,30,30,29,30,29,30,30],2065:[31,32,31,32,31,30,30,30,29,29,30,31],2066:[31,31,31,32,31,31,29,30,30,29,29,31],2067:[31,31,32,31,31,31,30,29,30,29,30,30],2068:[31,31,32,32,31,30,30,29,30,29,30,30],2069:[31,32,31,32,31,30,30,30,29,29,30,31],2070:[31,31,31,32,31,31,29,30,30,29,30,30],2071:[31,31,32,31,31,31,30,29,30,29,30,30],2072:[31,32,31,32,31,30,30,29,30,29,30,30],2073:[31,32,31,32,31,30,30,30,29,29,30,31],2074:[31,31,31,32,31,31,30,29,30,29,30,30],2075:[31,31,32,31,31,31,30,29,30,29,30,30],2076:[31,32,31,32,31,30,30,29,30,29,30,30],2077:[31,32,31,32,31,30,30,30,29,29,30,31],2078:[31,31,31,32,31,31,30,29,30,29,30,30],2079:[31,31,32,31,31,31,30,29,30,29,30,30],2080:[31,32,31,32,31,30,30,30,29,29,30,30],2081:[31,31,32,32,31,30,30,30,29,30,30,30],2082:[30,32,31,32,31,30,30,30,29,30,30,30],2083:[31,31,32,31,31,30,30,29,30,30,30,30],2084:[31,31,32,31,31,30,30,29,30,29,30,30],2085:[31,32,31,32,30,31,30,30,29,30,30,30],2086:[30,32,31,32,31,30,30,29,30,30,30,30],2087:[31,31,32,31,31,31,30,30,29,30,30,30],2088:[30,31,32,32,30,31,30,30,29,30,30,30],2089:[30,32,31,32,31,30,30,29,30,30,30,30],2090:[30,32,31,32,31,30,30,29,30,30,30,30]};
+const bsMonths=['Baishakh','Jestha','Ashadh','Shrawan','Bhadra','Ashwin','Kartik','Mangsir','Poush','Magh','Falgun','Chaitra'], adMonths=['January','February','March','April','May','June','July','August','September','October','November','December'], week=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const ne={bsMonths:['बैशाख','जेठ','असार','श्रावण','भदौ','असोज','कार्तिक','मंसिर','पुष','माघ','फाल्गुण','चैत्र'],adMonths:['जनवरी','फेब्रुअरी','मार्च','अप्रिल','मे','जुन','जुलाई','अगस्ट','सेप्टेम्बर','अक्टोबर','नोभेम्बर','डिसेम्बर'],week:['आइतबार','सोमबार','मंगलबार','बुधबार','बिहीबार','शुक्रबार','शनिबार']};
+const nepaliDigits=x=>String(x).replace(/[0-9]/g,d=>'०१२३४५६७८९'[d]);
+const bs2083Ashwin1=Date.UTC(2026,8,17);
+const tr={en:{title:'Date Converter',subtitle:'Convert between Bikram Sambat (BS) and Anno Domini (AD)',today:'Today',use:"Use Today's Date",bs:'Enter Bikram Sambat (BS) Date',ad:'Enter Anno Domini (AD) Date',convert:'Convert',toAd:'Converted to AD',toBs:'Converted to BS',range:'BS Year Range: 2000 - 2090 | Reference: BS 2000/01/01 = AD 1943/04/14',brand:'🇳🇵 Rastriya Jeewan Beema Calendar Converter'},ne:{title:'मिति रूपान्तरक',subtitle:'बिक्रम सम्बत (बी.एस.) र ईस्वी सन (ए.डी.) बीच रूपान्तरण गर्नुहोस्',today:'आज',use:'आजको मिति प्रयोग गर्नुहोस्',bs:'बिक्रम सम्बत (बी.एस.) मिति प्रविष्ट गर्नुहोस्',ad:'ईस्वी सन (ए.डी.) मिति प्रविष्ट गर्नुहोस्',convert:'रूपान्तरण गर्नुहोस्',toAd:'ए.डी. मा रूपान्तरण',toBs:'बी.एस. मा रूपान्तरण',range:'बी.एस. वर्ष दायरा: २००० - २०९० | सन्दर्भ: बी.एस. २०००/०१/०१ = ए.डी. १९४३/०४/१४',brand:'🇳🇵 राष्ट्रिय जीवन बीमा मिति रूपान्तरक'}};
+let mode='bs-to-ad', lang='en';
+const $=id=>document.getElementById(id), leap=y=>y%4===0&&(y%100!==0||y%400===0), adDim=(y,m)=>[31,leap(y)?29:28,31,30,31,30,31,31,30,31,30,31][m-1], bsDim=(y,m)=>data[y]?.[m-1]||32;
+function bsToAd(y,m,d){if(y===2083&&m===6){let date=new Date(Date.UTC(2026,8,16+d));return{year:date.getUTCFullYear(),month:date.getUTCMonth()+1,day:date.getUTCDate()}}if(y===2083&&m>6){let n=data[2083].slice(5,m-1).reduce((a,b)=>a+b,0)+d-1,stamp=bs2083Ashwin1+n,date=new Date(stamp);return{year:date.getUTCFullYear(),month:date.getUTCMonth()+1,day:date.getUTCDate()}}let n=0;for(let i=2000;i<y;i++)n+=data[i].reduce((a,b)=>a+b,0);for(let i=0;i<m-1;i++)n+=data[y][i];n+=d-1;let ay=1943,am=4,ad=14;while(n){let left=adDim(ay,am)-ad+1;if(n<left){ad+=n;break}n-=left;ad=1;if(++am>12){am=1;ay++}}return{year:ay,month:am,day:ad}};
+function adToBs(y,m,d){let stamp=Date.UTC(y,m-1,d);if(stamp>=bs2083Ashwin1&&stamp<Date.UTC(2027,3,14)){let n=Math.floor((stamp-bs2083Ashwin1)/86400000),by=2083,bm=6,bd=1;while(n>0){let left=bsDim(by,bm)-bd+1;if(n<left){bd+=n;break}n-=left;bd=1;if(++bm>12){bm=1;by++}}return{year:by,month:bm,day:bd}}let n=Math.floor((stamp-Date.UTC(1943,3,14))/86400000),by=2000,bm=1,bd=1;while(n>0){let left=bsDim(by,bm)-bd+1;if(n<left){bd+=n;break}n-=left;bd=1;if(++bm>12){bm=1;by++}}return{year:by,month:bm,day:bd}};
+function setLanguage(v){lang=v;let t=tr[v];$('title').textContent=t.title;$('subtitle').textContent=t.subtitle;$('todayLabel').textContent=t.today;$('todayBtn').textContent=t.use;$('inputLabel').textContent=mode==='bs-to-ad'?t.bs:t.ad;$('convertBtn').textContent=t.convert;$('range').textContent=t.range;$('brand').textContent=t.brand;$('enBtn').className=v==='en'?'px-4 py-2 text-sm font-bold bg-blue-500 text-white':'px-4 py-2 text-sm font-bold text-slate-500';$('neBtn').className=v==='ne'?'px-4 py-2 text-sm font-bold bg-green-500 text-white':'px-4 py-2 text-sm font-bold text-slate-500';fillMonths();todayDisplay();if(!$('result').classList.contains('hidden'))convert()}
+function setMode(v){mode=v;let t=tr[lang];$('inputLabel').textContent=v==='bs-to-ad'?t.bs:t.ad;$('bsTab').className=v==='bs-to-ad'?'flex-1 py-3 rounded-xl font-semibold bg-white text-blue-600 shadow':'flex-1 py-3 rounded-xl font-semibold text-slate-500';$('adTab').className=v==='ad-to-bs'?'flex-1 py-3 rounded-xl font-semibold bg-white text-green-600 shadow':'flex-1 py-3 rounded-xl font-semibold text-slate-500';fillYears();fillMonths();hide()}
+function swapMode(){setMode(mode==='bs-to-ad'?'ad-to-bs':'bs-to-ad')}
+function fillYears(){let e=$('year');e.outerHTML=mode==='bs-to-ad'?'<select id="year" class="mt-1 w-full rounded-xl border border-white bg-white/75 p-2.5 text-slate-700 shadow-inner"></select>':'<input id="year" type="number" min="1943" max="2033" placeholder="Select year" class="mt-1 w-full rounded-xl border border-white bg-white/75 p-2.5 text-slate-700 shadow-inner">';e=$('year');e.onchange=fillDays;if(mode==='bs-to-ad'){e.add(new Option('Select year',''));for(let y=2000;y<=2090;y++)e.add(new Option(y,y))}fillDays()}
+function fillMonths(){let e=$('month'),current=e.value;e.innerHTML='';e.add(new Option('Select month',''));let names=lang==='ne'?ne[mode==='bs-to-ad'?'bsMonths':'adMonths']:(mode==='bs-to-ad'?bsMonths:adMonths);names.forEach((x,i)=>e.add(new Option(x,i+1)));if(current)e.value=current;fillDays()}
+function fillDays(){let y=+$('year').value,m=+$('month').value,e=$('day'),old=+e.value||1;e.innerHTML='';if(!y||!m){e.add(new Option('Select day',''));return}let max=mode==='bs-to-ad'?bsDim(y,m):adDim(y,m);e.add(new Option('Select day',''));for(let d=1;d<=max;d++)e.add(new Option(d,d));e.value=Math.min(old,max)}
+function useToday(){let now=new Date();let x=mode==='bs-to-ad'?adToBs(now.getFullYear(),now.getMonth()+1,now.getDate()):{year:now.getFullYear(),month:now.getMonth()+1,day:now.getDate()};$('year').value=String(x.year);$('month').value=String(x.month);fillDays();$('day').value=String(x.day);hide()}
+function convert(){let y=+$('year').value,m=+$('month').value,d=+$('day').value;if(!y||!m||!d)return showError(lang==='ne'?'कृपया वर्ष, महिना र गते छान्नुहोस्':'Please select a year, month, and day');if(mode==='bs-to-ad'&&!data[y])return showError('BS year not supported');if(mode==='ad-to-bs'&&(y<1943||y>2033))return showError('AD year must be between 1943 and 2033');let x=mode==='bs-to-ad'?bsToAd(y,m,d):adToBs(y,m,d), names=lang==='ne'?ne[mode==='bs-to-ad'?'adMonths':'bsMonths']:(mode==='bs-to-ad'?adMonths:bsMonths), wd=lang==='ne'?ne.week:week, date=mode==='bs-to-ad'?new Date(x.year,x.month-1,x.day):new Date(y,m-1,d), formatted=mode==='bs-to-ad'?`${x.day} ${names[x.month-1]} ${x.year}`:`${x.year} ${names[x.month-1]} ${x.day}`,display=lang==='ne'?nepaliDigits(formatted):formatted,numeric=lang==='ne'?nepaliDigits(`${x.year}-${String(x.month).padStart(2,'0')}-${String(x.day).padStart(2,'0')}`):`${x.year}-${String(x.month).padStart(2,'0')}-${String(x.day).padStart(2,'0')}`;$('resultLabel').textContent=tr[lang][mode==='bs-to-ad'?'toAd':'toBs'];$('resultText').textContent=`${display} | ${numeric} (${wd[date.getDay()]})`;$('result').classList.remove('hidden');$('error').classList.add('hidden')}
+function showError(x){$('error').textContent=x;$('error').classList.remove('hidden');$('result').classList.add('hidden')}function hide(){$('error').classList.add('hidden');$('result').classList.add('hidden')}
+function todayDisplay(){let n=new Date(),x=adToBs(n.getFullYear(),n.getMonth()+1,n.getDate()),names=lang==='ne'?ne.bsMonths:bsMonths;if(lang==='ne'){$('todayBs').textContent=`बी.एस.: ${nepaliDigits(x.year)} ${names[x.month-1]} ${nepaliDigits(x.day)}`;$('todayAd').textContent=`ए.डी.: ${n.toLocaleDateString('ne-NP',{day:'numeric',month:'long',year:'numeric'})}`}else{$('todayBs').textContent=`BS: ${x.year} ${names[x.month-1]} ${x.day}`;$('todayAd').textContent=`AD: ${n.toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})}`}}
+$('year').addEventListener('change',fillDays);$('month').addEventListener('change',fillDays);fillYears();fillMonths();setLanguage('en');
+</script>
+</body>
+</html>

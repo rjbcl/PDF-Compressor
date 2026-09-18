@@ -162,8 +162,7 @@ def convert_page():
 
 @app.get("/date-converter")
 def date_converter_page():
-    converter_path = BASE_DIR.parent / "Date-converter" / "index.html"
-    return send_file(converter_path)
+    return render_template("date_converter.html")
 
 
 @app.post("/compress")
